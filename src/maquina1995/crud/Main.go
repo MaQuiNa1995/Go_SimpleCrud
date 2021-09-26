@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -14,18 +15,28 @@ type Hechizo struct {
 }
 
 func main() {
-	// log.Println("Server started on: http://localhost:8080")
 	db := connect()
 	defer close(db)
 
 	hechizo := Hechizo{
 		0,
-		"Torrente Ígneo",
-		30,
+		"Rayo Paralizante",
+		13,
 	}
-	insert(db, hechizo)
 
-	// http.HandleFunc("/", Index)
+	error := create(db, &hechizo)
+	if error != nil {
+		log.Println(error)
+	}
+
+	hechizos, error := findAll(db)
+	if error == nil {
+		for _, hechizo := range hechizos {
+			log.Println(hechizo)
+		}
+	}
+
+	// http.Handl eFunc("/", Index)
 	// http.HandleFunc("/show", Show)
 	// http.HandleFunc("/new", New)
 	// http.HandleFunc("/edit", Edit)
@@ -35,7 +46,44 @@ func main() {
 	// http.ListenAndServe(":8080", nil)
 }
 
-func insert(db *sql.DB, hechizo Hechizo) error {
+func findAll(db *sql.DB) ([]Hechizo, error) {
+
+	countQuery, error := db.Query("SELECT COUNT(*) AS counter FROM HECHIZO")
+	if error != nil {
+		return nil, error
+	}
+
+	rows, error := db.Query("SELECT * FROM HECHIZO")
+	if error != nil {
+		return nil, error
+	}
+
+	var id, mana, counter int
+	var nombre string
+	hechizo := Hechizo{}
+
+	countQuery.Scan(&counter)
+	fmt.Print(counter)
+
+	respuesta := make([]Hechizo, counter)
+
+	for rows.Next() {
+		errorSelect := rows.Scan(&id, &nombre, &mana)
+		if errorSelect != nil {
+			log.Println(errorSelect)
+			continue
+		}
+
+		hechizo.id = id
+		hechizo.nombre = nombre
+		hechizo.mana = mana
+		respuesta = append(respuesta, hechizo)
+	}
+
+	return respuesta, nil
+}
+
+func create(db *sql.DB, hechizo *Hechizo) error {
 	stmt, error := db.Prepare("INSERT INTO HECHIZO (NOMBRE, MANA) VALUES (?, ?)")
 	if error != nil {
 		log.Println(error)
@@ -49,8 +97,8 @@ func insert(db *sql.DB, hechizo Hechizo) error {
 		return err
 	}
 
-	_, id := query.RowsAffected()
-	log.Printf("Se han insertado %v en la tabla Hechizo !!!", id)
+	id, _ := query.LastInsertId()
+	log.Printf("Se ha insertado una columna en la tabla Hechizo con id:%v !!!", id)
 	return nil
 }
 
