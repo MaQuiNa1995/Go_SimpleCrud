@@ -9,7 +9,7 @@ import (
 )
 
 type Hechizo struct {
-	id     int
+	id     int64
 	nombre string
 	mana   int
 }
@@ -20,20 +20,33 @@ func main() {
 
 	hechizo := Hechizo{
 		0,
-		"Rayo Paralizante",
-		13,
+		"Carámbano Punzante",
+		5,
 	}
 
-	error := create(db, &hechizo)
-	if error != nil {
-		log.Println(error)
+	// Create
+	id, _ := create(db, &hechizo)
+
+	// Update
+	hechizo.nombre = "Hechizo updateado"
+	hechizo.mana = 100
+	hechizo.id = id
+	update(db, &hechizo)
+
+	hechizos, _ := findAll(db)
+	for _, hechizo := range hechizos {
+		log.Println(hechizo)
 	}
 
-	hechizos, error := findAll(db)
-	if error == nil {
-		for _, hechizo := range hechizos {
-			log.Println(hechizo)
-		}
+	// Read
+	findById(db, hechizo.id)
+
+	// Delete
+	delete(db, hechizo.id)
+
+	hechizos, _ = findAll(db)
+	for _, hechizo := range hechizos {
+		log.Println(hechizo)
 	}
 
 	// http.Handl eFunc("/", Index)
@@ -46,60 +59,126 @@ func main() {
 	// http.ListenAndServe(":8080", nil)
 }
 
+func delete(db *sql.DB, id int64) error {
+
+	fmt.Println()
+	log.Println("---- Delete ----")
+
+	query, error := db.Query("DELETE FROM HECHIZO WHERE ID=?", id)
+	if error != nil {
+		log.Println(error)
+		return error
+	}
+	defer query.Close()
+	log.Println("Se ha Eliminado de la BD el hechizo con id: ", id)
+	return nil
+}
+
+func update(db *sql.DB, hechizoUpdate *Hechizo) error {
+
+	fmt.Println()
+	log.Println("---- Consulta Update ----")
+
+	query, error := db.Exec("UPDATE HECHIZO SET NOMBRE=?, MANA=? WHERE ID=?", hechizoUpdate.id, hechizoUpdate.nombre, hechizoUpdate.mana)
+	if error != nil {
+		log.Println(error)
+		return error
+	}
+
+	rows, _ := query.RowsAffected()
+	log.Printf("Se ha actualizado el item de base de datos %v, registros afectados: %v", hechizoUpdate, rows)
+
+	return nil
+
+}
+
+func findById(db *sql.DB, idHechizo int64) error {
+
+	fmt.Println()
+	log.Println("---- Consulta FindById ----")
+
+	query, error := db.Query("SELECT * FROM  HECHIZO WHERE ID=?", idHechizo)
+	if error != nil {
+		return error
+	}
+	defer query.Close()
+
+	var id int64
+	var mana int
+	var nombre string
+
+	query.Next()
+	error = query.Scan(&id, &nombre, &mana)
+	if error != nil {
+		log.Println(error)
+		return error
+	}
+
+	hechizo := Hechizo{id, nombre, mana}
+	log.Println("Se ha obtenido de la BD: ", hechizo)
+
+	return nil
+}
+
 func findAll(db *sql.DB) ([]Hechizo, error) {
+
+	fmt.Println()
+	log.Println("---- Consulta FindAll ----")
+
+	var id int64
+	var mana, resultCounter int
+	var nombre string
 
 	countQuery, error := db.Query("SELECT COUNT(*) AS counter FROM HECHIZO")
 	if error != nil {
-		return nil, error
+		return make([]Hechizo, 0), error
 	}
+	defer countQuery.Close()
 
-	rows, error := db.Query("SELECT * FROM HECHIZO")
+	countQuery.Scan(&resultCounter)
+
+	query, error := db.Query("SELECT * FROM HECHIZO")
 	if error != nil {
-		return nil, error
+		return make([]Hechizo, 0), error
 	}
 
-	var id, mana, counter int
-	var nombre string
-	hechizo := Hechizo{}
+	hechizos := make([]Hechizo, resultCounter)
 
-	countQuery.Scan(&counter)
-	fmt.Print(counter)
-
-	respuesta := make([]Hechizo, counter)
-
-	for rows.Next() {
-		errorSelect := rows.Scan(&id, &nombre, &mana)
+	for query.Next() {
+		errorSelect := query.Scan(&id, &nombre, &mana)
 		if errorSelect != nil {
 			log.Println(errorSelect)
 			continue
 		}
 
-		hechizo.id = id
-		hechizo.nombre = nombre
-		hechizo.mana = mana
-		respuesta = append(respuesta, hechizo)
+		hechizosDb := Hechizo{id, nombre, mana}
+		hechizos = append(hechizos, hechizosDb)
 	}
 
-	return respuesta, nil
+	return hechizos, nil
 }
 
-func create(db *sql.DB, hechizo *Hechizo) error {
+func create(db *sql.DB, hechizo *Hechizo) (int64, error) {
+
+	fmt.Println()
+	log.Println("---- Consulta Create ----")
+
 	stmt, error := db.Prepare("INSERT INTO HECHIZO (NOMBRE, MANA) VALUES (?, ?)")
 	if error != nil {
 		log.Println(error)
-		return error
+		return 0, error
 	}
 	defer stmt.Close()
 
-	query, err := stmt.Exec(hechizo.nombre, hechizo.mana)
-	if err != nil {
-		log.Println(err)
-		return err
+	query, error := stmt.Exec(hechizo.nombre, hechizo.mana)
+	if error != nil {
+		log.Println(error)
+		return 0, error
 	}
 
 	id, _ := query.LastInsertId()
 	log.Printf("Se ha insertado una columna en la tabla Hechizo con id:%v !!!", id)
-	return nil
+	return id, nil
 }
 
 /*
