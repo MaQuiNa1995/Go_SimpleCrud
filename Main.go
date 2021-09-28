@@ -15,8 +15,8 @@ func main() {
 
 	hechizo := entity.Hechizo{
 		Id:     0,
-		Nombre: "Carámbano Punzante",
-		Mana:   5,
+		Nombre: "Tsunami",
+		Mana:   200,
 	}
 
 	// Create

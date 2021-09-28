@@ -11,37 +11,45 @@ const (
 	tabla = "HECHIZO"
 )
 
-func Delete(db *sql.DB, id int64) error {
+func Create(db *sql.DB, hechizo *entity.Hechizo) (int64, error) {
 
 	fmt.Println()
-	log.Println("---- Delete ----")
+	log.Println("---- Consulta Create ----")
 
-	query, error := db.Query("DELETE FROM ? WHERE ID=?", tabla, id)
+	query := fmt.Sprintf("INSERT INTO %v (NOMBRE, MANA) VALUES (?, ?)", tabla)
+	stmt, error := db.Prepare(query)
 	if error != nil {
 		log.Println(error)
-		return error
+		return 0, error
 	}
-	defer query.Close()
-	log.Println("Se ha Eliminado de la BD el hechizo con id: ", id)
-	return nil
+	defer stmt.Close()
+
+	insertQuery, error := stmt.Exec(hechizo.Nombre, hechizo.Mana)
+	if error != nil {
+		log.Println(error)
+		return 0, error
+	}
+
+	id, _ := insertQuery.LastInsertId()
+	log.Printf("Se ha insertado una columna en la tabla %v con id:%v !!!", tabla, id)
+	return id, nil
 }
 
-func Update(db *sql.DB, hechizoUpdate *entity.Hechizo) error {
+func Count(db *sql.DB) int {
 
-	fmt.Println()
-	log.Println("---- Consulta Update ----")
+	var resultCounter int
 
-	query, error := db.Exec("UPDATE ? SET NOMBRE=?, MANA=? WHERE ID=?", tabla, hechizoUpdate.Id, hechizoUpdate.Nombre, hechizoUpdate.Mana)
+	query := fmt.Sprintf("SELECT COUNT(*) AS counter FROM %v", tabla)
+
+	countQuery, error := db.Query(query)
 	if error != nil {
-		log.Println(error)
-		return error
+		return 0
 	}
 
-	rows, _ := query.RowsAffected()
-	log.Printf("Se ha actualizado el item de base de datos %v, registros afectados: %v", hechizoUpdate, rows)
+	defer countQuery.Close()
+	countQuery.Scan(&resultCounter)
 
-	return nil
-
+	return resultCounter
 }
 
 func FindById(db *sql.DB, idHechizo int64) error {
@@ -49,18 +57,19 @@ func FindById(db *sql.DB, idHechizo int64) error {
 	fmt.Println()
 	log.Println("---- Consulta FindById ----")
 
-	query, error := db.Query("SELECT * FROM ? WHERE ID=?", tabla, idHechizo)
+	query := fmt.Sprintf("SELECT * FROM %v WHERE ID=?", tabla)
+	selectQuery, error := db.Query(query, idHechizo)
 	if error != nil {
 		return error
 	}
-	defer query.Close()
+	defer selectQuery.Close()
 
 	var id int64
 	var mana int
 	var nombre string
 
-	query.Next()
-	error = query.Scan(&id, &nombre, &mana)
+	selectQuery.Next()
+	error = selectQuery.Scan(&id, &nombre, &mana)
 	if error != nil {
 		log.Println(error)
 		return error
@@ -78,26 +87,20 @@ func FindAll(db *sql.DB) ([]entity.Hechizo, error) {
 	log.Println("---- Consulta FindAll ----")
 
 	var id int64
-	var mana, resultCounter int
+	var mana int
 	var nombre string
 
-	countQuery, error := db.Query("SELECT COUNT(*) AS counter FROM ?", tabla)
-	if error != nil {
-		return make([]entity.Hechizo, 0), error
-	}
-	defer countQuery.Close()
-
-	countQuery.Scan(&resultCounter)
-
-	query, error := db.Query("SELECT * FROM ?", tabla)
+	query := fmt.Sprintf("SELECT * FROM  %v", tabla)
+	resultQuery, error := db.Query(query)
 	if error != nil {
 		return make([]entity.Hechizo, 0), error
 	}
 
-	hechizos := make([]entity.Hechizo, resultCounter)
+	count := Count(db)
+	hechizos := make([]entity.Hechizo, count)
 
-	for query.Next() {
-		errorSelect := query.Scan(&id, &nombre, &mana)
+	for resultQuery.Next() {
+		errorSelect := resultQuery.Scan(&id, &nombre, &mana)
 		if errorSelect != nil {
 			log.Println(errorSelect)
 			continue
@@ -110,25 +113,37 @@ func FindAll(db *sql.DB) ([]entity.Hechizo, error) {
 	return hechizos, nil
 }
 
-func Create(db *sql.DB, hechizo *entity.Hechizo) (int64, error) {
+func Update(db *sql.DB, hechizoUpdate *entity.Hechizo) error {
 
 	fmt.Println()
-	log.Println("---- Consulta Create ----")
+	log.Println("---- Consulta Update ----")
 
-	stmt, error := db.Prepare("INSERT INTO ? (NOMBRE, MANA) VALUES (?, ?)")
+	query := fmt.Sprintf("UPDATE %v SET NOMBRE=?, MANA=? WHERE ID=?", tabla)
+
+	updateQuery, error := db.Exec(query, hechizoUpdate.Nombre, hechizoUpdate.Mana, hechizoUpdate.Id)
 	if error != nil {
 		log.Println(error)
-		return 0, error
+		return error
 	}
-	defer stmt.Close()
 
-	query, error := stmt.Exec(tabla, hechizo.Nombre, hechizo.Mana)
+	rows, _ := updateQuery.RowsAffected()
+	log.Printf("Se ha actualizado el item de base de datos %v, registros afectados: %v", hechizoUpdate, rows)
+
+	return nil
+}
+
+func Delete(db *sql.DB, id int64) error {
+
+	fmt.Println()
+	log.Println("---- Delete ----")
+
+	query := fmt.Sprintf("DELETE FROM %v WHERE ID=?", tabla)
+	deleteQuery, error := db.Query(query, id)
 	if error != nil {
 		log.Println(error)
-		return 0, error
+		return error
 	}
-
-	id, _ := query.LastInsertId()
-	log.Printf("Se ha insertado una columna en la tabla %v con id:%v !!!", tabla, id)
-	return id, nil
+	defer deleteQuery.Close()
+	log.Println("Se ha Eliminado de la BD el hechizo con id: ", id)
+	return nil
 }
