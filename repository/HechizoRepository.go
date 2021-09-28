@@ -11,6 +11,9 @@ const (
 	tabla = "HECHIZO"
 )
 
+/*
+	Crea un Hechizo en base de datos
+*/
 func Create(db *sql.DB, hechizo *entity.Hechizo) (int64, error) {
 
 	fmt.Println()
@@ -35,6 +38,9 @@ func Create(db *sql.DB, hechizo *entity.Hechizo) (int64, error) {
 	return id, nil
 }
 
+/*
+	Cuenta los registros en la tabla de Hechizo
+*/
 func Count(db *sql.DB) int {
 
 	var resultCounter int
@@ -52,6 +58,9 @@ func Count(db *sql.DB) int {
 	return resultCounter
 }
 
+/*
+	Busca por id en tabla de Hechizo
+*/
 func FindById(db *sql.DB, idHechizo int64) error {
 
 	fmt.Println()
@@ -81,6 +90,9 @@ func FindById(db *sql.DB, idHechizo int64) error {
 	return nil
 }
 
+/*
+	Recupera todos los registros de la tabla de Hechizo
+*/
 func FindAll(db *sql.DB) ([]entity.Hechizo, error) {
 
 	fmt.Println()
@@ -113,6 +125,9 @@ func FindAll(db *sql.DB) ([]entity.Hechizo, error) {
 	return hechizos, nil
 }
 
+/*
+	Actualiza un Hechizo por id
+*/
 func Update(db *sql.DB, hechizoUpdate *entity.Hechizo) error {
 
 	fmt.Println()
@@ -132,6 +147,9 @@ func Update(db *sql.DB, hechizoUpdate *entity.Hechizo) error {
 	return nil
 }
 
+/*
+	Elimina hechizo por id
+*/
 func Delete(db *sql.DB, id int64) error {
 
 	fmt.Println()
