@@ -4,14 +4,9 @@ import (
 	"log"
 	entity "maquina1995/crud/entities"
 	repo "maquina1995/crud/repository"
-	dbUtils "maquina1995/crud/utils"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-	db := dbUtils.Connect()
-	defer dbUtils.Close(db)
 
 	hechizo := entity.Hechizo{
 		Id:     0,
@@ -20,26 +15,26 @@ func main() {
 	}
 
 	// Create
-	id, _ := repo.Create(db, &hechizo)
+	id, _ := repo.Create(&hechizo)
 
 	// Read
-	repo.FindById(db, hechizo.Id)
+	repo.FindById(id)
 
 	// Update
 	hechizo.Nombre = "Hechizo updateado"
 	hechizo.Mana = 100
 	hechizo.Id = id
-	repo.Update(db, &hechizo)
+	repo.Update(&hechizo)
 
-	hechizos, _ := repo.FindAll(db)
+	hechizos, _ := repo.FindAll()
 	for _, hechizo := range hechizos {
 		log.Println(hechizo)
 	}
 
 	// Delete
-	repo.Delete(db, hechizo.Id)
+	repo.Delete(hechizo.Id)
 
-	hechizos, _ = repo.FindAll(db)
+	hechizos, _ = repo.FindAll()
 	for _, hechizo := range hechizos {
 		log.Println(hechizo)
 	}

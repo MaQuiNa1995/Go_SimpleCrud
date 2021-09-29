@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	entity "maquina1995/crud/entities"
+	dbUtils "maquina1995/crud/utils"
 )
 
 const (
@@ -14,10 +14,12 @@ const (
 /*
 	Crea un Hechizo en base de datos
 */
-func Create(db *sql.DB, hechizo *entity.Hechizo) (int64, error) {
+func Create(hechizo *entity.Hechizo) (int64, error) {
 
-	fmt.Println()
 	log.Println("---- Consulta Create ----")
+
+	db := dbUtils.Connect()
+	defer dbUtils.Close(db)
 
 	query := fmt.Sprintf("INSERT INTO %v (NOMBRE, MANA) VALUES (?, ?)", tabla)
 	stmt, error := db.Prepare(query)
@@ -41,7 +43,11 @@ func Create(db *sql.DB, hechizo *entity.Hechizo) (int64, error) {
 /*
 	Cuenta los registros en la tabla de Hechizo
 */
-func Count(db *sql.DB) int {
+func Count() int {
+
+	fmt.Println()
+	db := dbUtils.Connect()
+	defer dbUtils.Close(db)
 
 	var resultCounter int
 
@@ -51,8 +57,8 @@ func Count(db *sql.DB) int {
 	if error != nil {
 		return 0
 	}
-
 	defer countQuery.Close()
+
 	countQuery.Scan(&resultCounter)
 
 	return resultCounter
@@ -61,14 +67,16 @@ func Count(db *sql.DB) int {
 /*
 	Busca por id en tabla de Hechizo
 */
-func FindById(db *sql.DB, idHechizo int64) error {
+func FindById(idHechizo int64) error {
 
-	fmt.Println()
 	log.Println("---- Consulta FindById ----")
+	db := dbUtils.Connect()
+	defer dbUtils.Close(db)
 
 	query := fmt.Sprintf("SELECT * FROM %v WHERE ID=?", tabla)
 	selectQuery, error := db.Query(query, idHechizo)
 	if error != nil {
+		log.Println(error)
 		return error
 	}
 	defer selectQuery.Close()
@@ -93,45 +101,46 @@ func FindById(db *sql.DB, idHechizo int64) error {
 /*
 	Recupera todos los registros de la tabla de Hechizo
 */
-func FindAll(db *sql.DB) ([]entity.Hechizo, error) {
+func FindAll() ([]entity.Hechizo, error) {
 
-	fmt.Println()
 	log.Println("---- Consulta FindAll ----")
+	db := dbUtils.Connect()
+	defer dbUtils.Close(db)
 
 	var id int64
-	var mana int
+	var mana, counter int
 	var nombre string
 
 	query := fmt.Sprintf("SELECT * FROM  %v", tabla)
 	resultQuery, error := db.Query(query)
+
+	hechizos := make([]entity.Hechizo, 0)
 	if error != nil {
-		return make([]entity.Hechizo, 0), error
+		return hechizos, error
 	}
 
-	count := Count(db)
-	hechizos := make([]entity.Hechizo, count)
-
 	for resultQuery.Next() {
+
 		errorSelect := resultQuery.Scan(&id, &nombre, &mana)
 		if errorSelect != nil {
 			log.Println(errorSelect)
 			continue
 		}
-
+		counter++
 		hechizosDb := entity.Hechizo{Id: id, Nombre: nombre, Mana: mana}
 		hechizos = append(hechizos, hechizosDb)
 	}
-
 	return hechizos, nil
 }
 
 /*
 	Actualiza un Hechizo por id
 */
-func Update(db *sql.DB, hechizoUpdate *entity.Hechizo) error {
+func Update(hechizoUpdate *entity.Hechizo) error {
 
-	fmt.Println()
 	log.Println("---- Consulta Update ----")
+	db := dbUtils.Connect()
+	defer dbUtils.Close(db)
 
 	query := fmt.Sprintf("UPDATE %v SET NOMBRE=?, MANA=? WHERE ID=?", tabla)
 
@@ -150,9 +159,12 @@ func Update(db *sql.DB, hechizoUpdate *entity.Hechizo) error {
 /*
 	Elimina hechizo por id
 */
-func Delete(db *sql.DB, id int64) error {
+func Delete(id int64) error {
 
 	fmt.Println()
+	db := dbUtils.Connect()
+	defer dbUtils.Close(db)
+
 	log.Println("---- Delete ----")
 
 	query := fmt.Sprintf("DELETE FROM %v WHERE ID=?", tabla)

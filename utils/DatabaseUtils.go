@@ -2,7 +2,10 @@ package utils
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 /*
@@ -24,9 +27,11 @@ func Connect() *sql.DB {
 func Close(database *sql.DB) error {
 
 	if database == nil {
+		log.Println("Se ha intentado cerrar la conexión cuando no se ha abierto")
 		return nil
 	}
 
 	log.Println("Se cierra la conexión")
+	fmt.Println("")
 	return database.Close()
 }
