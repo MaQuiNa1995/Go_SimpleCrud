@@ -67,7 +67,7 @@ func Count() int {
 /*
 	Busca por id en tabla de Hechizo
 */
-func FindById(idHechizo int64) error {
+func FindById(idHechizo int64) (entity.Hechizo, error) {
 
 	log.Println("---- Consulta FindById ----")
 	db := dbUtils.Connect()
@@ -77,7 +77,7 @@ func FindById(idHechizo int64) error {
 	selectQuery, error := db.Query(query, idHechizo)
 	if error != nil {
 		log.Println(error)
-		return error
+		return entity.Hechizo{}, error
 	}
 	defer selectQuery.Close()
 
@@ -89,13 +89,13 @@ func FindById(idHechizo int64) error {
 	error = selectQuery.Scan(&id, &nombre, &mana)
 	if error != nil {
 		log.Println(error)
-		return error
+		return entity.Hechizo{}, error
 	}
 
 	hechizo := entity.Hechizo{Id: id, Nombre: nombre, Mana: mana}
 	log.Println("Se ha obtenido de la BD: ", hechizo)
 
-	return nil
+	return hechizo, nil
 }
 
 /*
