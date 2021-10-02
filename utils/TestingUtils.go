@@ -6,7 +6,7 @@ import (
 )
 
 /*
-	Compara dos valores
+	Compara dos valores que deberían de ser iguales
 */
 func AssertEquals(t *testing.T, esperado interface{}, actual interface{}) {
 	if esperado != actual {
@@ -14,12 +14,18 @@ func AssertEquals(t *testing.T, esperado interface{}, actual interface{}) {
 	}
 }
 
+/*
+	Compara dos valores que deberían de ser diferentes
+*/
 func AssertNotEquals(t *testing.T, esperado interface{}, actual interface{}) {
 	if esperado == actual {
 		t.Errorf("No se esperaba que fueran iguales los 2 valores %v (tipo: %v), %v (tipo: %v)", esperado, reflect.TypeOf(esperado), actual, reflect.TypeOf(actual))
 	}
 }
 
+/*
+	Comprueba que error no sea nil
+*/
 func AssertNotError(t *testing.T, err error) {
 	if err != nil {
 		t.Error("Se ha producido un error", err)
