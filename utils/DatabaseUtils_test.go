@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"log"
 	"testing"
 )
 
@@ -15,8 +16,9 @@ func TestConnect(t *testing.T) {
 
 func TestClose(t *testing.T) {
 	db := Connect()
-
-	if Close(db) != nil {
-		t.Error("la desconexión a la base de datos ha fallado")
+	err := Close(db)
+	if err != nil {
+		log.Println(err)
+		t.Error("la desconexión a la base de datos ha fallado", err)
 	}
 }
