@@ -12,7 +12,7 @@ import (
 	Se abre la conexión a la base de datos
 */
 func Connect() *sql.DB {
-	db, err := sql.Open("mysql", "crud_user:pass@tcp(localhost:3306)/go_application")
+	db, err := sql.Open("mysql", "root:pass@tcp(localhost:3306)/go_application")
 	if err != nil {
 		log.Panic(err)
 		panic("Error en la conexión a la base de datos...")
