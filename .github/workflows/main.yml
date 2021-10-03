@@ -26,16 +26,16 @@ jobs:
       - name: Run coverage
         run: go test ./repository/ ./utils/ -race -covermode=atomic -coverprofile=coverage.out
       - name: Upload coverage to Codecov
-        run: bash <(curl -s https://codecov.io/bash)
+        run: bash <(curl -s https://codecov.io/bash) 
 
-services:
-  mysql:
-    image: mysql:5.7
-    env:
-      MYSQL_DATABASE: go_application
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
-      MYSQL_ROOT_PASSWORD: pass
-    ports:
-      - 33306:3306
-    options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    services:
+      mysql:
+        image: mysql:5.7
+       env:
+         MYSQL_DATABASE: go_application
+         MYSQL_USER: user
+         MYSQL_PASSWORD: password
+         MYSQL_ROOT_PASSWORD: pass
+        ports:
+          - 33306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3

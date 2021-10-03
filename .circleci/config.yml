@@ -5,7 +5,7 @@ jobs:
     docker:
       - image: circleci/golang:1.17.1
     steps:
-      # - uses: mirromutth/mysql-action@v1.1
+      # - uses: mirromutth/mysql-action@v1.1 
       #   with:
       #     # host port: 3800  Optional, default value is 3306. The port of host
       #     # container port: 3306  Optional, default value is 3306. The port of container
@@ -24,17 +24,17 @@ jobs:
           name: Upload coverage to Codecov
           command: bash <(curl -s https://codecov.io/bash)
 
-services:
-  mysql:
-    image: mysql:5.7
-    env:
-      MYSQL_DATABASE: go_application
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
-      MYSQL_ROOT_PASSWORD: pass
-    ports:
-      - 33306:3306
-    options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+# services:
+#   mysql:
+#     image: mysql:5.7
+#     env:
+#       MYSQL_DATABASE: go_application
+#       MYSQL_USER: user
+#       MYSQL_PASSWORD: password
+#       MYSQL_ROOT_PASSWORD: pass
+#     ports:
+#       - 33306:3306
+#     options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
 workflow:
   version: 2.1
