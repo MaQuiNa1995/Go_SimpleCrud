@@ -7,6 +7,15 @@ import (
 	"testing"
 )
 
+func TestMain(m *testing.M) {
+	db := utils.Connect()
+	_, err := db.Exec("CREATE TABLE IF NOT EXISTS `HECHIZO` ( `ID` int(11) NOT NULL, `NOMBRE` varchar(30) COLLATE utf8_bin NOT NULL, `MANA` int(11) NOT NULL ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;")
+	fmt.Println("aaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+	if err != nil {
+		fmt.Println("Error fatal creando tabla", err)
+	}
+}
+
 func TestCreate(t *testing.T) {
 
 	// Given
