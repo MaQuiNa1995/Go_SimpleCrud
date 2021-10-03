@@ -8,9 +8,10 @@ import (
 func TestConnect(t *testing.T) {
 	db := Connect()
 	defer db.Close()
-
-	if db.Ping() != nil {
-		t.Error("La conexión a la base de datos ha fallado")
+	err := db.Ping()
+	if err != nil {
+		log.Println(err)
+		t.Error("La conexión a la base de datos ha fallado", err)
 	}
 }
 
